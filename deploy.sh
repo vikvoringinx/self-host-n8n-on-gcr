@@ -25,11 +25,12 @@ else
     export GCP_PROJECT_ID="$GCP_PROJECT_ID_INPUT"
 fi
 
-export GCP_REGION="${TF_VAR_gcp_region:-us-west2}"
+export GCP_REGION="${TF_VAR_gcp_region:-us-central1}"
 export AR_REPO_NAME="${TF_VAR_artifact_repo_name:-n8n-repo}"
 export SERVICE_NAME="${TF_VAR_cloud_run_service_name:-n8n}"
 
-export IMAGE_TAG="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${SERVICE_NAME}:latest"
+#export IMAGE_TAG="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${SERVICE_NAME}:latest"
+export IMAGE_TAG="gcr.io/chatbots-ringinx/n8n:latest"
 
 # --- Check Prerequisites --- #
 command -v gcloud >/dev/null 2>&1 || { echo >&2 "gcloud is required but it's not installed. Aborting."; exit 1; }
@@ -66,16 +67,20 @@ terraform apply -target="$tf_service_resource" -target="$tf_repo_resource" -auto
 cd ..
 
 # --- Step 2: Configure Docker --- #
-echo "\n---> Configuring Docker authentication..."
-gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet
+# echo "\n---> Configuring Docker authentication..."
+# gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet
 
 # --- Step 3: Build Docker Image --- #
-echo "\n---> Building Docker image: ${IMAGE_TAG}..."
-docker build --platform linux/amd64 -t "${IMAGE_TAG}" .
+# echo "\n---> Building Docker image: ${IMAGE_TAG}..."
+# docker build --platform linux/amd64 -t "${IMAGE_TAG}" .
+
 
 # --- Step 4: Push Docker Image --- #
-echo "\n---> Pushing Docker image to Artifact Registry..."
-docker push "${IMAGE_TAG}"
+# echo "\n---> Pushing Docker image to Artifact Registry..."
+# docker push "${IMAGE_TAG}"
+
+# Skip explicit Docker auth – Cloud Build uses your IAM identity
+gcloud builds submit --project="$GCP_PROJECT_ID" --tag "${IMAGE_TAG}" .
 
 # --- Step 5: Apply Remaining Terraform Configuration --- #
 echo "\n---> Applying full Terraform configuration..."

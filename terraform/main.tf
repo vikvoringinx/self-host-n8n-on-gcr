@@ -144,7 +144,8 @@ resource "google_project_iam_member" "sql_client" {
 # --- Cloud Run Service --- #
 locals {
   # Construct the image name dynamically
-  n8n_image_name = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${var.artifact_repo_name}/${var.cloud_run_service_name}:latest"
+  #n8n_image_name = "${var.gcp_region}-docker.pkg.dev/${var.gcp_project_id}/${var.artifact_repo_name}/${var.cloud_run_service_name}:latest"
+  n8n_image_name = "gcr.io/chatbots-ringinx/n8n:latest"
   # Construct the service URL dynamically for env vars
   service_url  = "https://${var.cloud_run_service_name}-${google_project_service.run.project}.run.app" # Assuming default URL format
   service_host = replace(local.service_url, "https://", "")
